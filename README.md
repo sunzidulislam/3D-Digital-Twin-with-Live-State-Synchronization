@@ -35,7 +35,7 @@ To remain lightweight and reproducible, the prototype uses the **AI4I 2020 Predi
 
 # Features
 
-## Implemented
+## Features
 
 - ✅ Browser-based 3D digital twin
 - ✅ CNC milling machine visualization
@@ -46,13 +46,6 @@ To remain lightweight and reproducible, the prototype uses the **AI4I 2020 Predi
 - ✅ Offline self-contained HTML export
 - ✅ Three.js rendering
 - ✅ Sensor-driven animation
-
-## Under Development
-
-- 🚧 Live WebSocket synchronization
-- 🚧 MQTT integration
-- 🚧 Improved predictive models
-- 🚧 Enhanced UI dashboard
 
 ## Planned
 
