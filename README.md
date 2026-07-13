@@ -6,7 +6,6 @@ synchronized with real sensor data, and overlays a trained
 **predictive-maintenance model's** live failure-risk estimate directly on
 the 3D model — the two defining properties of an industrial digital twin:
 state synchronization and predictive capability.
-
 ---
 
 ## 1. Current scope: what "live" means in this prototype
@@ -71,6 +70,15 @@ dataset either way.
 ---
 
 ## 4. Methodology / Pipeline
+
+**Figure 1** below shows the end-to-end pipeline: sensor data flows
+through a predictive model, into the 3D twin's geometry/data bundle, and
+out to the live-synced renderer, with the specific sensor → visual
+mappings used in Stage 4 detailed at the bottom of the figure.
+
+![Digital twin pipeline architecture](figures/pipeline_diagram.svg)
+*Figure 1: End-to-end pipeline from raw sensor data to a live-synced 3D
+digital twin with an integrated predictive-maintenance overlay.*
 
 ```
 STAGE 1                  STAGE 2                       STAGE 3                    STAGE 4
@@ -143,22 +151,24 @@ the warning beacon glowing red with "71.0%" shown in the HUD.
 
 ## 6. Current results
 
+*Metrics below are to be filled in from an actual training run on the
+real AI4I dataset (Cell 3 of the notebook prints this automatically) —
+placeholders below have not yet been verified against real data and
+should be replaced before this README is considered final.*
+
 On a stratified 30% test split (3,000 rows) of the predictive-maintenance
 model as currently trained:
 
 | Metric | Value |
 |---|---|
-| ROC-AUC | 0.989 |
-| Precision (failure class) | 0.679 |
-| Recall (failure class) | 0.679 |
-| Accuracy (overall) | 0.977 |
+| ROC-AUC | _TODO — paste from your run_ |
+| Precision (failure class) | _TODO_ |
+| Recall (failure class) | _TODO_ |
+| Accuracy (overall) | _TODO_ |
 
-The high ROC-AUC and overall accuracy reflect that failures are a small
-minority class (~3–4% of rows) and the sensor features are strongly
-informative — consistent with prior published results on this dataset.
-Precision/recall on the minority failure class (~0.68 each) is more
-representative of real-world difficulty and is the number worth quoting
-over accuracy, which is inflated by class imbalance.
+Because `failure` is a minority class (~3–4% of rows), accuracy alone
+will look inflated — precision/recall on the failure class is the more
+meaningful number to report and discuss.
 
 ---
 
