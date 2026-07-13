@@ -1,0 +1,134 @@
+<svg viewBox="0 0 1240 620" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4a4f5c"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="620" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="620" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1c22">
+    Sensor-Driven 3D Digital Twin — Pipeline
+  </text>
+  <text x="620" y="56" text-anchor="middle" font-size="12.5" fill="#6b7280">
+    AI4I 2020 sensor data  →  predictive model  →  3D twin geometry  →  live-synced rendering
+  </text>
+
+  <!-- ===================== Stage boxes ===================== -->
+  <!-- Stage 1 -->
+  <g>
+    <rect x="30" y="110" width="255" height="220" rx="14" fill="#eef4ff" stroke="#3b6fd1" stroke-width="1.6"/>
+    <text x="157" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#204488">STAGE 1</text>
+    <text x="157" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#152a55">Sensor Dataset</text>
+    <line x1="55" y1="172" x2="260" y2="172" stroke="#c3d4f2"/>
+    <text x="55" y="196" font-size="11.5" fill="#33456f">Input:</text>
+    <text x="55" y="213" font-size="11" fill="#33456f">AI4I 2020 CSV</text>
+    <text x="55" y="228" font-size="11" fill="#33456f">(HF → UCI → synthetic</text>
+    <text x="55" y="243" font-size="11" fill="#33456f">fallback chain)</text>
+    <text x="55" y="270" font-size="11.5" fill="#33456f">Output:</text>
+    <text x="55" y="287" font-size="11" fill="#33456f">10,000 × [air_temp,</text>
+    <text x="55" y="302" font-size="11" fill="#33456f">process_temp, rpm,</text>
+    <text x="55" y="317" font-size="11" fill="#33456f">torque, tool_wear, failure]</text>
+  </g>
+
+  <!-- Stage 2 -->
+  <g>
+    <rect x="325" y="110" width="255" height="220" rx="14" fill="#f4eeff" stroke="#7c4fd1" stroke-width="1.6"/>
+    <text x="452" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#4a2488">STAGE 2</text>
+    <text x="452" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#341a55">Predictive Layer</text>
+    <line x1="350" y1="172" x2="555" y2="172" stroke="#dcc9f5"/>
+    <text x="350" y="196" font-size="11.5" fill="#4a3470">Input:</text>
+    <text x="350" y="213" font-size="11" fill="#4a3470">5 sensor features</text>
+    <text x="350" y="228" font-size="11" fill="#4a3470">per row (stratified</text>
+    <text x="350" y="243" font-size="11" fill="#4a3470">70/30 split)</text>
+    <text x="350" y="270" font-size="11.5" fill="#4a3470">Output:</text>
+    <text x="350" y="287" font-size="11" fill="#4a3470">Gradient Boosting</text>
+    <text x="350" y="302" font-size="11" fill="#4a3470">Classifier →</text>
+    <text x="350" y="317" font-size="11" fill="#4a3470">fail_prob ∈ [0,1] / row</text>
+  </g>
+
+  <!-- Stage 3 -->
+  <g>
+    <rect x="620" y="110" width="255" height="220" rx="14" fill="#eafaf0" stroke="#2f9e5c" stroke-width="1.6"/>
+    <text x="747" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#1c6b3d">STAGE 3</text>
+    <text x="747" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#14512c">3D Twin Geometry</text>
+    <line x1="645" y1="172" x2="850" y2="172" stroke="#bfe9d0"/>
+    <text x="645" y="196" font-size="11.5" fill="#276b41">Input:</text>
+    <text x="645" y="213" font-size="11" fill="#276b41">Timeline (Stage 1+2) +</text>
+    <text x="645" y="228" font-size="11" fill="#276b41">procedural Three.js</text>
+    <text x="645" y="243" font-size="11" fill="#276b41">machine model</text>
+    <text x="645" y="270" font-size="11.5" fill="#276b41">Output:</text>
+    <text x="645" y="287" font-size="11" fill="#276b41">Self-contained</text>
+    <text x="645" y="302" font-size="11" fill="#276b41">digital_twin.html</text>
+    <text x="645" y="317" font-size="11" fill="#276b41">(geometry + data + logic)</text>
+  </g>
+
+  <!-- Stage 4 -->
+  <g>
+    <rect x="915" y="110" width="295" height="220" rx="14" fill="#fff3e6" stroke="#d1822f" stroke-width="1.6"/>
+    <text x="1062" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#8a4f14">STAGE 4</text>
+    <text x="1062" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#6b3c0f">Sync &amp; Rendering</text>
+    <line x1="940" y1="172" x2="1185" y2="172" stroke="#f3d9b6"/>
+    <text x="940" y="196" font-size="11.5" fill="#79490f">Input:</text>
+    <text x="940" y="213" font-size="11" fill="#79490f">Live playback index</text>
+    <text x="940" y="228" font-size="11" fill="#79490f">(browser timer, or a</text>
+    <text x="940" y="243" font-size="11" fill="#79490f">live socket feed later)</text>
+    <text x="940" y="270" font-size="11.5" fill="#79490f">Output:</text>
+    <text x="940" y="287" font-size="11" fill="#79490f">Rotating spindle · color</text>
+    <text x="940" y="302" font-size="11" fill="#79490f">by temp · tool wear ·</text>
+    <text x="940" y="317" font-size="11" fill="#79490f">failure-risk beacon</text>
+  </g>
+
+  <!-- Arrows between stages -->
+  <line x1="285" y1="220" x2="320" y2="220" stroke="#4a4f5c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="580" y1="220" x2="615" y2="220" stroke="#4a4f5c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="875" y1="220" x2="910" y2="220" stroke="#4a4f5c" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ===================== Sensor -> visual mapping detail ===================== -->
+  <g>
+    <rect x="30" y="380" width="1180" height="200" rx="14" fill="#fafafb" stroke="#d8dae0" stroke-width="1.4"/>
+    <text x="52" y="408" font-size="13" font-weight="700" fill="#1a1c22">Stage 4 detail — sensor channel → visual mapping (per frame)</text>
+
+    <!-- rows -->
+    <g font-size="12" fill="#33363f">
+      <text x="52" y="440" font-weight="600">rpm</text>
+      <text x="230" y="440">→</text>
+      <text x="260" y="440">Spindle assembly's live rotation speed</text>
+
+      <text x="52" y="465" font-weight="600">process_temp</text>
+      <text x="230" y="465">→</text>
+      <text x="260" y="465">Machine body color, gray → red</text>
+
+      <text x="52" y="490" font-weight="600">torque</text>
+      <text x="230" y="490">→</text>
+      <text x="260" y="490">Head tilt (visualizes load)</text>
+
+      <text x="640" y="440" font-weight="600">tool_wear</text>
+      <text x="800" y="440">→</text>
+      <text x="825" y="440">Tool bit shortens &amp; darkens</text>
+
+      <text x="640" y="465" font-weight="600">fail_prob (model output)</text>
+      <text x="800" y="465">→</text>
+      <text x="825" y="465">Warning beacon: green → amber → red</text>
+
+      <text x="640" y="490" font-weight="600">playback index</text>
+      <text x="800" y="490">→</text>
+      <text x="825" y="490">HUD values, gauges, seek bar position</text>
+    </g>
+
+    <line x1="52" y1="510" x2="1158" y2="510" stroke="#e2e3e8"/>
+    <text x="52" y="536" font-size="11.5" fill="#6b7280">
+      Loop: advance playback index → look up row in sensor timeline → map each channel to a visual
+    </text>
+    <text x="52" y="554" font-size="11.5" fill="#6b7280">
+      property above → re-render frame. Same loop structure works for a live socket feed — only the
+    </text>
+    <text x="52" y="572" font-size="11.5" fill="#6b7280">
+      "advance playback index" step would be replaced by "receive new reading" (see Roadmap, §7).
+    </text>
+  </g>
+
+  <!-- connector from stage row down to detail box -->
+  <line x1="1062" y1="330" x2="1062" y2="360" stroke="#4a4f5c" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>
