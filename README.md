@@ -78,7 +78,7 @@ through a predictive model, into the 3D twin's geometry/data bundle, and
 out to the live-synced renderer, with the specific sensor → visual
 mappings used in Stage 4 detailed at the bottom of the figure.
 
-![Digital twin pipeline architecture](figures/pipeline_diagram.svg)
+![Digital twin pipeline architecture](pipeline_diagram.svg)
 *Figure 1: End-to-end pipeline from raw sensor data to a live-synced 3D
 digital twin with an integrated predictive-maintenance overlay.*
 
