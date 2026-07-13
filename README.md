@@ -6,6 +6,8 @@ synchronized with real sensor data, and overlays a trained
 **predictive-maintenance model's** live failure-risk estimate directly on
 the 3D model — the two defining properties of an industrial digital twin:
 state synchronization and predictive capability.
+
+
 ---
 
 ## 1. Current scope: what "live" means in this prototype
