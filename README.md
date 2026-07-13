@@ -14,10 +14,10 @@ A digital twin is more than a 3D model—it is a virtual representation that rem
 
 This project implements both essential characteristics of a modern industrial digital twin:
 
-- **Real-time (timeline-based) state synchronization**
-- **Predictive maintenance using machine learning**
+- **Timeline-based state synchronization** — a JS playback loop advances an index into a down-sampled sensor timeline every frame and maps each channel to a visual property (see Method Overview)
+- **Predictive maintenance using machine learning** — a Gradient Boosting Classifier trained on 5 sensor features, scoring every row with a failure probability that drives a warning beacon on the twin
 
-To remain lightweight and reproducible, the prototype uses the **AI4I 2020 Predictive Maintenance Dataset** as a replayable sensor stream while maintaining the same architecture that would be used for live IoT data.
+To remain lightweight and reproducible, the prototype uses the **AI4I 2020 Predictive Maintenance Dataset** (10,000 real sensor readings from a milling process) as a replayable sensor stream while maintaining the same architecture that would be used for live IoT data.
 
 ---
 
@@ -37,62 +37,66 @@ To remain lightweight and reproducible, the prototype uses the **AI4I 2020 Predi
 
 ## Features
 
-- ✅ Browser-based 3D digital twin
-- ✅ CNC milling machine visualization
-- ✅ Real industrial sensor dataset integration
-- ✅ Timeline-based live state synchronization
-- ✅ Predictive maintenance using Machine Learning
-- ✅ Interactive playback controls
-- ✅ Offline self-contained HTML export
-- ✅ Three.js rendering
-- ✅ Sensor-driven animation
+- ✅ Browser-based 3D digital twin (Three.js, self-contained HTML — no server)
+- ✅ Procedural CNC milling machine model (base, column, head, table, spindle, tool bit)
+- ✅ Real 10,000-row AI4I 2020 sensor dataset (not simulated)
+- ✅ Timeline-replay synchronization at 1×/4×/16× playback speed
+- ✅ Gradient Boosting failure-probability model driving a live health beacon
+- ✅ Pause / seek / scrub playback controls
+- ✅ Offline self-contained HTML export (`digital_twin.html`)
+- ✅ Per-channel value-range normalization for color/gauge mapping
 
 ## Planned
 
-- 📌 ESP32 / Arduino live sensors
-- 📌 Photorealistic machine reconstruction
-- 📌 Gaussian Splatting integration
-- 📌 Failure mode prediction
-- 📌 Time-to-failure forecasting
-- 📌 Cloud deployment
+- 📌 ESP32 / Arduino live sensor stream over WebSocket/MQTT
+- 📌 Photorealistic machine reconstruction (photogrammetry)
+- 📌 Gaussian Splatting–based geometry (reusing the companion SDS/DiT pipeline)
+- 📌 Multiclass failure-mode prediction (tool wear / heat / power / overstrain / random)
+- 📌 Time-to-failure (RUL) forecasting model
+- 📌 Cloud deployment of the live-sync backend
 
 ---
 
 # Method Overview
 
-The digital twin follows a four-stage processing pipeline.
+The digital twin follows a four-stage processing pipeline, with the specific
+implementation detail at each step below.
 
 ```
-Industrial Sensor Data
+AI4I 2020 sensor CSV — 10,000 rows × 5 features + failure label
+          │  (HF mirror → UCI CSV → synthetic fallback chain)
+          ▼
+Column normalization → [air_temp, process_temp, rpm, torque, tool_wear, failure]
           │
           ▼
-Data Processing & Normalization
+Gradient Boosting Classifier (scikit-learn), stratified 70/30 train/test split
           │
           ▼
-Predictive Maintenance Model
+Per-row failure probability fail_prob ∈ [0,1], scored for all 10,000 rows
+and appended as an extra column on the sensor timeline
           │
           ▼
-Failure Probability Estimation
+Procedural Three.js machine — base, column, head, table, spindle, tool bit,
+warning beacon — plus the down-sampled timeline (every 10th row) and
+per-channel min/max ranges, all embedded into one HTML file
           │
           ▼
-3D Digital Twin
+JS playback loop: advance timeline index → look up row → normalize each
+channel against its dataset range → map to a visual property (below)
           │
           ▼
-Live State Synchronization
-          │
-          ▼
-Interactive Browser Visualization
+Self-contained digital_twin.html — pause / seek / 1×-4×-16× speed controls
 ```
 
 The workflow consists of:
 
-1. Loading industrial sensor data.
-2. Training a predictive maintenance model.
-3. Estimating failure probability for every timestamp.
-4. Synchronizing sensor values with a 3D machine model.
-5. Rendering machine state continuously through timeline playback.
+1. Loading the AI4I 2020 CSV and normalizing column names.
+2. Training a Gradient Boosting Classifier on 5 sensor features to predict `failure`.
+3. Scoring every row with `fail_prob`, added to the timeline as an extra channel.
+4. Embedding geometry + timeline + value ranges into one self-contained HTML file.
+5. Running a per-frame JS loop that maps each sensor channel to a specific visual property (see table in "Live Synchronization" below).
 
-The architecture is designed so that replacing the replay dataset with a live IoT stream requires only changing the data source, without modifying the visualization or prediction pipeline.
+The architecture is designed so that replacing the replay dataset with a live IoT stream requires only swapping the "advance timeline index" step for "receive new reading from socket" — the prediction and rendering logic don't change.
 
 ---
 
@@ -100,22 +104,21 @@ The architecture is designed so that replacing the replay dataset with a live Io
 
 ## Dataset
 
-**AI4I 2020 Predictive Maintenance Dataset**
+**AI4I 2020 Predictive Maintenance Dataset** — 10,000 rows, 5 real-valued sensor channels + 1 binary label:
 
-Sensor channels include:
+| Raw column | Normalized name | Meaning |
+|---|---|---|
+| Air temperature [K] | `air_temp` | Air temperature (K) |
+| Process temperature [K] | `process_temp` | Process temperature (K) |
+| Rotational speed [rpm] | `rpm` | Spindle rotational speed |
+| Torque [Nm] | `torque` | Torque (Nm) |
+| Tool wear [min] | `tool_wear` | Tool wear (minutes) |
+| Machine failure | `failure` | Binary failure label |
 
-- Air Temperature
-- Process Temperature
-- Rotational Speed (RPM)
-- Torque
-- Tool Wear
-- Machine Failure Label
-
-Dataset loading supports:
-
-- Hugging Face mirrors
-- UCI Machine Learning Repository
-- Synthetic fallback (development only)
+Dataset loading fallback chain (in order):
+1. Hugging Face Hub mirrors (tried first; none of the attempted IDs resolved in testing)
+2. UCI Machine Learning Repository CSV (canonical source — this is what the pipeline actually loaded in the verified run)
+3. Synthetic fallback (development/offline use only, clearly labeled in logs when reached)
 
 ---
 
@@ -123,57 +126,54 @@ Dataset loading supports:
 
 Current implementation:
 
-- Gradient Boosting Classifier
-- Stratified train/test split
-- Failure probability prediction
-- Probability-based health visualization
+- **Model:** `GradientBoostingClassifier` (scikit-learn, default hyperparameters, `random_state=0`)
+- **Features:** `[air_temp, process_temp, rpm, torque, tool_wear]` (5 numeric columns)
+- **Target:** `failure` (binary)
+- **Split:** stratified 70/30 train/test (stratified because failures are a small minority class, ~3–4% of rows)
+- **Output:** a failure probability `fail_prob ∈ [0,1]` computed for every row in the dataset, not just the test set — this is what drives the twin's warning beacon
 
 Future versions will evaluate:
 
-- XGBoost
-- LightGBM
-- Random Forest
-- Deep Learning models
+- XGBoost / LightGBM / Random Forest as alternative classifiers
+- A deep learning model (small MLP or 1D-CNN over the sensor window) for comparison
 
 ---
 
 ## 3D Visualization
 
-Built using **Three.js**.
-
-Current machine components include:
+Built using **Three.js**, geometry generated procedurally (no imported mesh):
 
 - Base
 - Column
 - Machine head
 - Table
-- Rotating spindle
+- Rotating spindle assembly
 - Tool bit
 - Status beacon
-
-All geometry is generated procedurally.
 
 ---
 
 ## Live Synchronization
 
-Current synchronization is timeline replay.
+Current synchronization mechanism: a `requestAnimationFrame` loop advances
+a playback index through the down-sampled timeline (every 10th reading,
+~1,000 points). Each frame, the current row's values are normalized
+against that channel's dataset-wide min/max and mapped to a specific
+visual property:
 
-Visual mappings include:
-
-| Sensor | Visualization |
-|---------|---------------|
-| RPM | Spindle rotation |
-| Process Temperature | Machine body color |
-| Torque | Head inclination |
-| Tool Wear | Tool deformation |
-| Failure Probability | Health beacon |
+| Sensor | Visualization | Mapping detail |
+|---------|---------------|---|
+| `rpm` | Spindle rotation speed | angular velocity ∝ normalized rpm |
+| `process_temp` | Machine body color | linear color interpolation, gray → red |
+| `torque` | Head inclination | head Z-rotation ∝ normalized torque |
+| `tool_wear` | Tool bit deformation | tool Y-scale shrinks, color darkens |
+| `fail_prob` | Health beacon | 3-level discrete color: green / amber / red |
 
 ---
 
 ## Export
 
-The project exports a single standalone
+The project exports a single standalone file:
 
 ```
 digital_twin.html
@@ -181,12 +181,13 @@ digital_twin.html
 
 which contains:
 
-- 3D geometry
-- Sensor timeline
-- Playback engine
-- Interactive controls
+- 3D geometry (Three.js scene graph, built in-script)
+- The down-sampled sensor timeline (JSON, embedded inline)
+- Per-channel value ranges (for normalization/color scales)
+- The playback loop and UI controls
 
-No backend server is required.
+No backend server, database, or external file dependency is required —
+opening the HTML file in any browser is sufficient.
 
 ---
 
@@ -194,13 +195,16 @@ No backend server is required.
 
 | Setting | Value |
 |----------|-------|
-| Dataset | AI4I 2020 Predictive Maintenance |
-| ML Library | Scikit-learn |
-| Classifier | Gradient Boosting |
-| Visualization | Three.js |
-| Language | Python + JavaScript |
-| Output | Standalone HTML |
-| Platform | Kaggle |
+| Dataset | AI4I 2020 Predictive Maintenance (10,000 rows) |
+| Features | `air_temp, process_temp, rpm, torque, tool_wear` |
+| Target | `failure` (binary) |
+| ML Library | scikit-learn |
+| Classifier | `GradientBoostingClassifier` (default params) |
+| Train/test split | stratified 70/30 |
+| Visualization | Three.js r128 (CDN) |
+| Language | Python (data + model) + JavaScript (twin) |
+| Output | Standalone `digital_twin.html` |
+| Platform | Kaggle (no GPU required) |
 
 ---
 
@@ -210,22 +214,21 @@ The repository is actively evolving.
 
 ### Completed
 
-- [x] Dataset integration
-- [x] Sensor preprocessing
-- [x] Predictive maintenance pipeline
-- [x] Gradient Boosting model
-- [x] 3D machine construction
-- [x] Timeline synchronization
-- [x] Interactive visualization
-- [x] HTML export
+- [x] AI4I 2020 dataset integration with HF → UCI → synthetic fallback chain
+- [x] Column normalization to a standard schema
+- [x] Gradient Boosting failure-probability model
+- [x] Procedural Three.js machine construction
+- [x] Timeline-replay synchronization with per-channel visual mapping
+- [x] Interactive playback controls (pause / seek / speed)
+- [x] Self-contained HTML export
 
 ### Currently Working On
 
-- [ ] Live data synchronization
-- [ ] Improved predictive accuracy
-- [ ] Better machine animation
-- [ ] Dashboard improvements
-- [ ] Code optimization
+- [ ] Live data synchronization (WebSocket/MQTT bridge)
+- [ ] Improved predictive accuracy (alternative classifiers)
+- [ ] Higher-fidelity machine animation
+- [ ] Dashboard/HUD improvements
+- [ ] Code cleanup and modularization
 
 ---
 
@@ -233,11 +236,11 @@ The repository is actively evolving.
 
 ## Phase 1 — Digital Twin Foundation
 
-- [x] Sensor dataset
-- [x] Predictive model
-- [x] Three.js visualization
+- [x] Sensor dataset (AI4I 2020, real data)
+- [x] Gradient Boosting predictive model
+- [x] Three.js procedural visualization
 - [x] Timeline playback
-- [x] HTML export
+- [x] Self-contained HTML export
 
 ---
 
@@ -246,35 +249,34 @@ The repository is actively evolving.
 - [ ] WebSocket integration
 - [ ] MQTT communication
 - [ ] ESP32 data streaming
-- [ ] Real-time synchronization
+- [ ] Real-time (non-replay) synchronization
 
 ---
 
 ## Phase 3 — Machine Intelligence
 
-- [ ] Failure mode classification
+- [ ] Multiclass failure-mode classification (5 AI4I failure types)
 - [ ] Time-to-failure prediction
-- [ ] Remaining Useful Life (RUL)
-- [ ] Confidence estimation
+- [ ] Remaining Useful Life (RUL) estimation
+- [ ] Prediction confidence/uncertainty estimation
 
 ---
 
 ## Phase 4 — Visualization Improvements
 
-- [ ] Photorealistic machine model
-- [ ] Digital dashboard
-- [ ] Interactive analytics
-- [ ] Historical trend visualization
+- [ ] Photorealistic machine model (photogrammetry or Gaussian Splatting)
+- [ ] Expanded dashboard with historical trend charts
+- [ ] Interactive analytics panel
 
 ---
 
 ## Phase 5 — Research Extensions
 
-- [ ] Gaussian Splatting reconstruction
+- [ ] Gaussian Splatting reconstruction (reusing the companion 3D generation repo)
 - [ ] Photogrammetry integration
-- [ ] Cloud-hosted digital twin
+- [ ] Cloud-hosted live digital twin
 - [ ] Multi-machine monitoring
-- [ ] Comparative ML benchmarking
+- [ ] Comparative ML benchmarking (GBM vs. XGBoost vs. deep learning)
 - [ ] Industrial IoT deployment
 
 ---
@@ -282,26 +284,20 @@ The repository is actively evolving.
 # Results
 
 🚧 **Experimental results will be added as the project progresses.**
+No metrics are reported yet — the values below are the categories that
+will be filled in once the current training run is verified, not
+placeholders for numbers already claimed:
 
-Future evaluations will include:
-
-- ROC-AUC
-- Precision
-- Recall
-- F1-score
-- Confusion Matrix
+- ROC-AUC, Precision, Recall, F1-score, Confusion Matrix (predictive model)
 - Prediction latency
-- Browser rendering performance
-- Synchronization latency
-- Frame rate benchmarks
+- Browser rendering frame rate
+- Synchronization latency (replay vs. eventual live feed)
 
 Visualization results will include:
 
-- Live synchronization demo
-- Interactive dashboard
-- Browser screenshots
-- Machine health visualization
-- Failure prediction examples
+- Live synchronization demo (recording/GIF)
+- Interactive dashboard screenshots
+- Failure-prediction walkthrough examples
 
 ---
 
