@@ -1,4 +1,5 @@
 # Sensor-Driven 3D Digital Twin with Live State Synchronization
+**Status: Ongoing / actively developed**
 
 An interactive 3D digital twin of a CNC milling machine that stays
 synchronized with real sensor data, and overlays a trained
@@ -6,15 +7,16 @@ synchronized with real sensor data, and overlays a trained
 the 3D model — the two defining properties of an industrial digital twin:
 state synchronization and predictive capability.
 
-This is the third project in a three-part set: two 3D *generation*
-projects (SDS text-to-3D, triplane Diffusion Transformer) and this
-digital-*twin* project, together covering both halves of the topic —
-generating 3D geometry, and keeping a 3D representation live-synced to a
-real physical system's state.
+This is part of an ongoing three-project line of work: two 3D
+*generation* projects (SDS text-to-3D, triplane Diffusion Transformer)
+and this digital-*twin* project, together covering both halves of the
+topic — generating 3D geometry, and keeping a 3D representation
+live-synced to a real physical system's state. The current version below
+is a working prototype; §7 lists the active/planned next steps.
 
 ---
 
-## 1. What "live" means here (read this first)
+## 1. Current scope: what "live" means in this prototype
 
 Kaggle cannot host a running server or connect to physical hardware, so
 this project honestly adapts the live-sync concept to a notebook
@@ -146,9 +148,10 @@ the warning beacon glowing red with "71.0%" shown in the HUD.
 
 ---
 
-## 6. Results
+## 6. Current results
 
-On a stratified 30% test split (3,000 rows):
+On a stratified 30% test split (3,000 rows) of the predictive-maintenance
+model as currently trained:
 
 | Metric | Value |
 |---|---|
@@ -166,29 +169,29 @@ over accuracy, which is inflated by class imbalance.
 
 ---
 
-## 7. Limitations & upgrade path (future work)
+## 7. Roadmap (in progress)
 
-- **Replayed, not live, data.** The single change needed for a genuinely
-  live twin is replacing the timeline-index-advance logic with messages
-  received over a WebSocket/MQTT bridge from real hardware (e.g. an
-  ESP32 with temperature/IMU sensors) — the rendering and predictive
-  layers require no change, since they already operate on "current
-  sensor reading → visual state" independent of how that reading arrives.
-- **Procedural geometry, not a scanned/reconstructed twin.** A natural
-  extension is replacing the hand-built Three.js machine with a mesh
-  reconstructed via photogrammetry or the 3D Gaussian Splatting pipeline
-  from the companion generation project — connecting the "3D generation"
-  and "digital twin" halves of this topic into one pipeline.
-  - **Single predictive target (binary failure).** The AI4I dataset also
-    labels *failure mode* (tool wear failure, heat dissipation failure,
-    power failure, overstrain failure, random failure) as a multiclass
-    problem; extending Stage 2 to a multiclass or multi-horizon
-    forecasting model (e.g. predicting time-to-failure, not just
-    probability-of-failure-now) is a natural depth increase.
-- **No uncertainty visualization.** Showing a confidence interval or a
-  "ghost" projected-future state (e.g. tool wear trajectory 30 steps
-  ahead) alongside current state would move this further toward the kind
-  of predictive overlay used in industrial digital twin research.
+- **Live data feed.** Currently the recorded sensor stream is replayed on
+  a timeline rather than pushed from a live socket — the natural next
+  step is a WebSocket/MQTT bridge from real hardware (e.g. an ESP32 with
+  temperature/IMU sensors) feeding the same sync pipeline. The rendering
+  and predictive layers won't need to change, since they already operate
+  on "current sensor reading → visual state" independent of how that
+  reading arrives.
+- **Reconstructed, not procedural, geometry.** Planning to replace the
+  hand-built Three.js machine with a mesh reconstructed via
+  photogrammetry or the 3D Gaussian Splatting pipeline from the companion
+  generation project — connecting the "3D generation" and "digital twin"
+  halves of this work into one pipeline.
+- **Multiclass / multi-horizon prediction.** The AI4I dataset also labels
+  *failure mode* (tool wear, heat dissipation, power, overstrain, random
+  failure) as a multiclass problem; extending the predictive layer to
+  multiclass or time-to-failure forecasting (rather than just
+  probability-of-failure-now) is a planned depth increase.
+- **Uncertainty visualization.** Adding a confidence interval or a
+  "ghost" projected-future state (e.g. tool wear trajectory N steps
+  ahead) alongside current state, moving toward the predictive overlays
+  used in industrial digital twin research.
 
 ## 8. References
 
