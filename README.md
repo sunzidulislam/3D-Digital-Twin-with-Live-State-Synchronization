@@ -7,13 +7,6 @@ synchronized with real sensor data, and overlays a trained
 the 3D model — the two defining properties of an industrial digital twin:
 state synchronization and predictive capability.
 
-This is part of an ongoing three-project line of work: two 3D
-*generation* projects (SDS text-to-3D, triplane Diffusion Transformer)
-and this digital-*twin* project, together covering both halves of the
-topic — generating 3D geometry, and keeping a 3D representation
-live-synced to a real physical system's state. The current version below
-is a working prototype; §7 lists the active/planned next steps.
-
 ---
 
 ## 1. Current scope: what "live" means in this prototype
