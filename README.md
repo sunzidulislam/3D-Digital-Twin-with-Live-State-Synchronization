@@ -1,6 +1,6 @@
 # Sensor-Driven 3D Digital Twin with Live State Synchronization
 
-> **🚧 Status:** Active Research Project (Work in Progress)
+> **Status:** Active Research Project (Work in Progress)
 
 An interactive **3D Digital Twin** of a CNC milling machine that continuously synchronizes with sensor data while visualizing **machine health** through an integrated predictive maintenance model.
 
@@ -10,7 +10,7 @@ The project combines **Industrial IoT**, **Machine Learning**, and **3D Visualiz
 
 # Overview
 
-A digital twin is more than a 3D model—it is a virtual representation that remains synchronized with a physical asset and supports intelligent decision-making.
+A digital twin is more than a 3D model, it is a virtual representation that remains synchronized with a physical asset and supports intelligent decision-making.
 
 This project implements both essential characteristics of a modern industrial digital twin:
 
@@ -97,6 +97,58 @@ The workflow consists of:
 5. Running a per-frame JS loop that maps each sensor channel to a specific visual property (see table in "Live Synchronization" below).
 
 The architecture is designed so that replacing the replay dataset with a live IoT stream requires only swapping the "advance timeline index" step for "receive new reading from socket" — the prediction and rendering logic don't change.
+
+---
+
+# Planned Methodology: World-Model-Style Interactive Twin (Phase 5)
+
+**Status: Not implemented — conceptual design for a Phase 5 roadmap item.**
+This section describes *how* the interactive world-model extension would
+work if built, following the same three-component structure used by
+world models like Genie, adapted from pixel/video space to this project's
+sensor-state space.
+
+## Motivation
+
+The current twin is a **passive replay**: it plays back a fixed,
+pre-recorded sensor timeline, and no input from the user changes what
+happens next. A world-model-style twin would instead let a user (or a
+control policy) **take an action** — e.g., "increase spindle RPM," "add
+cutting load," "simulate a worn tool" — and have the twin **generate a
+plausible resulting sensor trajectory**, rather than only replaying what
+was recorded. This turns the twin from a visualization into a lightweight
+**simulator** that could be used to explore hypothetical/what-if machine
+states, including ones never observed in the AI4I dataset.
+
+## Proposed architecture, mapped from Genie's three components
+
+World models like Genie are built from three pieces: a tokenizer that
+compresses raw video into discrete units, an autoregressive dynamics
+model that predicts the next unit given past units, and a latent action
+model that infers what "action" occurred between two consecutive frames
+without needing action-labeled data. The table below maps each of those
+onto an analog in this project's much lower-dimensional sensor-state
+setting:
+
+| Genie component | Role in Genie | Proposed analog for this twin |
+|---|---|---|
+| Video tokenizer | Compresses raw pixels into discrete visual tokens | Not needed as-is — sensor state is already a low-dimensional vector `[air_temp, process_temp, rpm, torque, tool_wear]`; this step is effectively free here |
+| Autoregressive dynamics model | Predicts next video token(s) from past tokens | A small sequence model (e.g. GRU/LSTM or a tiny Transformer) trained to predict `state_{t+1}` from `state_t` + the chosen action, using the AI4I timeline as training sequences |
+| Latent action model | Infers implicit actions between frames from unlabeled video | Not needed as unlabeled inference — **actions can be defined explicitly** for this domain (e.g. `Δrpm`, `Δtorque`, `advance_tool_wear`), since the sensor channels and their physical meaning are already known, unlike raw internet video |
+
+This is a meaningfully **simpler** problem than Genie's: Genie has to
+learn actions from unlabeled pixels because internet video has no action
+log, and has to generate high-dimensional video frames. This project's
+"frames" are 5 numbers, and the actions are known machine controls — so a
+world-model-style dynamics model here is a small sequence-prediction
+model, not a large-scale video generator.
+
+## Planned input / output
+
+| | Input | Output |
+|---|---|---|
+| Training the dynamics model | Sequences of `(state_t, action_t, state_{t+1})` derived from the AI4I timeline (actions inferred as the observed deltas between consecutive real readings, as a starting approximation) | A model predicting `state_{t+1}` given `state_t` and a chosen action |
+| Interactive use (what the user experiences) | A discrete action choice at each step (e.g. "increase RPM," "simulate added load") | A generated next sensor state, fed into the *same* existing visual-mapping logic |
 
 ---
 
@@ -278,6 +330,32 @@ The repository is actively evolving.
 - [ ] Multi-machine monitoring
 - [ ] Comparative ML benchmarking (GBM vs. XGBoost vs. deep learning)
 - [ ] Industrial IoT deployment
+- [ ] Diffusion-generated twin geometry (replacing procedural Three.js model with a video/3D-diffusion-reconstructed one)
+- [ ] World-model-style interactive simulation (action-controllable environment, not just passive replay)
+
+### Recent related work (2025–2026) informing this roadmap
+
+- **Digital Twin Generation from Visual Data: A Survey** (2025) — surveys
+  generating 3D digital twins directly from visual data using 3D Gaussian
+  Splatting, generative inpainting, and diffusion-based foundation models;
+  directly relevant to the planned Gaussian Splatting/photogrammetry items
+  above.
+- **Pantheon360** (CVPR 2026) — a 3D-aware 360° video diffusion model that
+  generates high-fidelity, geometrically consistent scenes for downstream
+  simulation and digital-twin applications, using an explicit 3D "cache"
+  as a geometric scaffold so the diffusion model only needs to handle
+  texture refinement. A candidate approach for the "diffusion-generated
+  twin geometry" item above.
+- **World models (Genie, Genie 2, NVIDIA Cosmos World Foundation Model
+  Platform)** — extend generative simulation into embodied,
+  action-controllable 3D environments rather than passive video/replay.
+  Conceptually the most ambitious direction for this repo: today's twin
+  *replays* a fixed sensor timeline, whereas a world-model-style twin
+  would let a user or controller take actions and have the environment
+  respond generatively — closer to a true simulator than a visualization.
+  This is a longer-term research direction, not a near-term implementation
+  target.
+
 
 ---
 
@@ -320,6 +398,19 @@ Visualization results will include:
 
 5. **Three.js Documentation**
    https://threejs.org/
+
+6. **Digital Twin Generation from Visual Data: A Survey.**
+   arXiv, 2025.
+
+7. **Pantheon360: Taming Digital Twin Generation via 3D-Aware 360°
+   Video Diffusion.**
+   CVPR, 2026.
+
+8. **Genie 2: A Large-Scale Foundation World Model.**
+   DeepMind, 2024.
+
+9. **NVIDIA Cosmos World Foundation Model Platform for Physical AI.**
+   NVIDIA, 2025.
 
 ---
 
