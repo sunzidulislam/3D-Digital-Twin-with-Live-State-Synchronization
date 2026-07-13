@@ -154,7 +154,7 @@ the warning beacon glowing red with "71.0%" shown in the HUD.
 ## 6. Current results
 
 *Metrics below are to be filled in from an actual training run on the
-real AI4I dataset (Cell 3 of the notebook prints this automatically) —
+real AI4I dataset —
 placeholders below have not yet been verified against real data and
 should be replaced before this README is considered final.*
 
@@ -163,7 +163,7 @@ model as currently trained:
 
 | Metric | Value |
 |---|---|
-| ROC-AUC | _TODO — paste from your run_ |
+| ROC-AUC | _TODO  |
 | Precision (failure class) | _TODO_ |
 | Recall (failure class) | _TODO_ |
 | Accuracy (overall) | _TODO_ |
